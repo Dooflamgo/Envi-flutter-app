@@ -1,3 +1,4 @@
+import 'package:envi/features/comments/comment_provider.dart';
 import 'package:envi/features/posts/post_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +39,7 @@ class _EnviAppState extends State<EnviApp> {
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => PostProvider()),
+        ChangeNotifierProvider(create: (_) => CommentProvider()),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,

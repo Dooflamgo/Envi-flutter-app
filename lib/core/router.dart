@@ -1,3 +1,5 @@
+import 'package:envi/features/comments/comment_model.dart';
+import 'package:envi/features/comments/edit_comment_screen.dart';
 import 'package:envi/features/feed/feed_screen.dart';
 import 'package:envi/features/posts/create_post_screen.dart';
 import 'package:envi/features/posts/edit_post_screen.dart';
@@ -47,6 +49,10 @@ GoRouter buildRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/edit-post/:id',
         builder: (context, state) => EditPostScreen(post: state.extra as PostModel),
+      ),
+      GoRoute(
+        path: '/edit-comment',
+        builder: (context, state) => EditCommentScreen(comment: state.extra as CommentModel),
       ),
       ShellRoute(
         builder: (context, state, child) => ScaffoldWithNav(child: child),

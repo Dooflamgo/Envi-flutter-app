@@ -41,7 +41,7 @@ class PostProvider extends ChangeNotifier {
 
     final data = await supabase
         .from('posts')
-        .select('*, profiles!posts_user_id_fkey(name, avatar_url)')
+        .select('*, profiles(name, avatar_url)')
         .order('created_at', ascending: false)
         .range(from, to);
 
@@ -55,7 +55,7 @@ class PostProvider extends ChangeNotifier {
   Future<PostModel> fetchSinglePost(String postId) async {
     final data = await supabase
         .from('posts')
-        .select('*, profiles!posts_user_id_fkey(name, avatar_url)')
+        .select('*, profiles(name, avatar_url)')
         .eq('id', postId)
         .single();
     return PostModel.fromMap(data);
@@ -109,6 +109,20 @@ class PostProvider extends ChangeNotifier {
     if (files.isNotEmpty) {
       final paths = files.map((f) => '$folderPath/${f.name}').toList();
       await supabase.storage.from('post-images').remove(paths);
+    }
+
+    final relatedComments = await supabase
+        .from('comments')
+        .select('id, user_id')
+        .eq('post_id', postId);
+
+    for (final comment in relatedComments as List) {
+      final commentFolder = '${comment['user_id']}/${comment['id']}';
+      final commentFiles = await supabase.storage.from('comment-images').list(path: commentFolder);
+      if (commentFiles.isNotEmpty) {
+        final commentPaths = commentFiles.map((f) => '$commentFolder/${f.name}').toList();
+        await supabase.storage.from('comment-images').remove(commentPaths);
+      }
     }
 
     await supabase.from('posts').delete().eq('id', postId);
