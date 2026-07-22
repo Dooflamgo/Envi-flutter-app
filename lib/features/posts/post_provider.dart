@@ -41,11 +41,12 @@ class PostProvider extends ChangeNotifier {
 
     final data = await supabase
         .from('posts')
-        .select('*, profiles(name, avatar_url)')
+        .select('*, profiles!posts_user_id_fkey(name, avatar_url), likes(count), reposts(count)')
         .order('created_at', ascending: false)
         .range(from, to);
 
     final newPosts = (data as List).map((e) => PostModel.fromMap(e)).toList();
+    await _hydrateMyReactions(newPosts);
 
     if (newPosts.length < _pageSize) hasMore = false;
     posts.addAll(newPosts);
@@ -55,10 +56,13 @@ class PostProvider extends ChangeNotifier {
   Future<PostModel> fetchSinglePost(String postId) async {
     final data = await supabase
         .from('posts')
-        .select('*, profiles(name, avatar_url)')
+        .select('*, profiles!posts_user_id_fkey(name, avatar_url), likes(count), reposts(count)')
         .eq('id', postId)
         .single();
-    return PostModel.fromMap(data);
+    var post = PostModel.fromMap(data);
+    final hydrated = [post];
+    await _hydrateMyReactions(hydrated);
+    return hydrated[0];
   }
 
   Future<void> createPost({
@@ -150,5 +154,63 @@ class PostProvider extends ChangeNotifier {
       return segments.sublist(index + 1).join('/');
     }).toList();
     await supabase.storage.from('post-images').remove(paths);
+  }
+
+  Future<void> _hydrateMyReactions(List<PostModel> targetPosts) async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null || targetPosts.isEmpty) return;
+
+    final ids = targetPosts.map((p) => p.id).toList();
+
+    final myLikes = await supabase
+        .from('likes')
+        .select('post_id')
+        .eq('user_id', userId)
+        .inFilter('post_id', ids);
+    final myReposts = await supabase
+        .from('reposts')
+        .select('post_id')
+        .eq('user_id', userId)
+        .inFilter('post_id', ids);
+
+    final likedIds = (myLikes as List).map((r) => r['post_id'] as String).toSet();
+    final repostedIds = (myReposts as List).map((r) => r['post_id'] as String).toSet();
+
+    for (var i = 0; i < targetPosts.length; i++) {
+      targetPosts[i] = targetPosts[i].copyWith(
+        isLikedByMe: likedIds.contains(targetPosts[i].id),
+        isRepostedByMe: repostedIds.contains(targetPosts[i].id),
+      );
+    }
+  }
+
+  Future<void> toggleLike(String postId, String userId) async {
+    final index = posts.indexWhere((p) => p.id == postId);
+    if (index == -1) return;
+    final post = posts[index];
+
+    if (post.isLikedByMe) {
+      await supabase.from('likes').delete().eq('post_id', postId).eq('user_id', userId);
+      posts[index] = post.copyWith(isLikedByMe: false, likeCount: post.likeCount - 1);
+    } else {
+      await supabase.from('likes').insert({'post_id': postId, 'user_id': userId});
+      posts[index] = post.copyWith(isLikedByMe: true, likeCount: post.likeCount + 1);
+    }
+    notifyListeners();
+  }
+
+  Future<void> toggleRepost(String postId, String userId) async {
+    final index = posts.indexWhere((p) => p.id == postId);
+    if (index == -1) return;
+    final post = posts[index];
+
+    if (post.isRepostedByMe) {
+      await supabase.from('reposts').delete().eq('post_id', postId).eq('user_id', userId);
+      posts[index] = post.copyWith(isRepostedByMe: false, repostCount: post.repostCount - 1);
+    } else {
+      await supabase.from('reposts').insert({'post_id': postId, 'user_id': userId});
+      posts[index] = post.copyWith(isRepostedByMe: true, repostCount: post.repostCount + 1);
+    }
+    notifyListeners();
   }
 }

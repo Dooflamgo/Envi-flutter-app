@@ -1,10 +1,10 @@
+import 'package:envi/features/posts/post_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../auth/auth_provider.dart';
-import '../posts/post_provider.dart';
 import '../posts/post_model.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -99,29 +99,32 @@ class PostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundImage: post.authorAvatarUrl != null
-                      ? CachedNetworkImageProvider(post.authorAvatarUrl!)
-                      : null,
-                  child: post.authorAvatarUrl == null ? const Icon(Icons.person, size: 18) : null,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      Text(
-                        timeago.format(post.createdAt),
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                      ),
-                    ],
+            GestureDetector(
+              onTap: () => context.push('/user/${post.userId}'),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundImage: post.authorAvatarUrl != null
+                        ? CachedNetworkImageProvider(post.authorAvatarUrl!)
+                        : null,
+                    child: post.authorAvatarUrl == null ? const Icon(Icons.person, size: 18) : null,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text(
+                          timeago.format(post.createdAt),
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 10),
             Text(post.content, maxLines: 5, overflow: TextOverflow.ellipsis),
@@ -129,6 +132,39 @@ class PostCard extends StatelessWidget {
               const SizedBox(height: 10),
               _ImagePreviewGrid(imageUrls: post.imageUrls),
             ],
+            Row(
+              children: [
+                _ReactionButton(
+                  icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
+                  color: post.isLikedByMe ? Colors.red : Colors.grey.shade700,
+                  count: post.likeCount,
+                  onTap: () {
+                    final userId = context.read<AuthProvider>().userId;
+                    if (userId == null) {
+                      context.push('/login');
+                    } else {
+                      context.read<PostProvider>().toggleLike(post.id, userId);
+                    }
+                  },
+                ),
+                const SizedBox(width: 20),
+                _ReactionButton(
+                  icon: Icons.repeat,
+                  color: post.isRepostedByMe ? Colors.green : Colors.grey.shade700,
+                  count: post.repostCount,
+                  onTap: () {
+                    final userId = context.read<AuthProvider>().userId;
+                    if (userId == null) {
+                      context.push('/login');
+                    } else {
+                      context.read<PostProvider>().toggleRepost(post.id, userId);
+                    }
+                  },
+                ),
+                const SizedBox(width: 20),
+                Icon(Icons.mode_comment_outlined, size: 18, color: Colors.grey.shade700),
+              ],
+            ),
           ],
         ),
       ),
@@ -187,6 +223,30 @@ class _ImagePreviewGrid extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _ReactionButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final int count;
+  final VoidCallback onTap;
+  const _ReactionButton({required this.icon, required this.color, required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          if (count > 0) ...[
+            const SizedBox(width: 4),
+            Text('$count', style: TextStyle(fontSize: 13, color: color)),
+          ],
+        ],
+      ),
     );
   }
 }

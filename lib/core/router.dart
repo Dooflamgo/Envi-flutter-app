@@ -1,11 +1,11 @@
 import 'package:envi/features/comments/comment_model.dart';
 import 'package:envi/features/comments/edit_comment_screen.dart';
 import 'package:envi/features/feed/feed_screen.dart';
+import 'package:envi/features/notifications/notifications_screen.dart';
 import 'package:envi/features/posts/create_post_screen.dart';
 import 'package:envi/features/posts/edit_post_screen.dart';
 import 'package:envi/features/posts/post_detail_screen.dart';
 import 'package:envi/features/posts/post_model.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/auth_provider.dart';
 import '../features/auth/login_screen.dart';
@@ -13,11 +13,6 @@ import '../features/auth/register_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../shared/scaffold_with_nav.dart';
 
-class NotificationsScreen extends StatelessWidget {
-  const NotificationsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Notifications - coming later')));
-}
 
 GoRouter buildRouter(AuthProvider authProvider) {
   return GoRouter(
@@ -53,6 +48,10 @@ GoRouter buildRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/edit-comment',
         builder: (context, state) => EditCommentScreen(comment: state.extra as CommentModel),
+      ),
+      GoRoute(
+        path: '/user/:id',
+        builder: (context, state) => ProfileScreen(userId: state.pathParameters['id']),
       ),
       ShellRoute(
         builder: (context, state, child) => ScaffoldWithNav(child: child),

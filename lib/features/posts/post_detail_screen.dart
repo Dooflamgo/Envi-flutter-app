@@ -105,24 +105,27 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundImage: _post!.authorAvatarUrl != null
-                                ? CachedNetworkImageProvider(_post!.authorAvatarUrl!)
-                                : null,
-                            child: _post!.authorAvatarUrl == null ? const Icon(Icons.person) : null,
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(_post!.authorName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                              Text(timeago.format(_post!.createdAt), style: TextStyle(color: Colors.grey.shade600)),
-                            ],
-                          ),
-                        ],
+                      GestureDetector(
+                        onTap: () => context.push('/user/${_post!.userId}'),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: _post!.authorAvatarUrl != null
+                                  ? CachedNetworkImageProvider(_post!.authorAvatarUrl!)
+                                  : null,
+                              child: _post!.authorAvatarUrl == null ? const Icon(Icons.person) : null,
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(_post!.authorName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                Text(timeago.format(_post!.createdAt), style: TextStyle(color: Colors.grey.shade600)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(_post!.content, style: const TextStyle(fontSize: 16)),
@@ -208,6 +211,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   Future<void> _openEditComment(CommentModel comment) async {
     final updated = await context.push<bool>('/edit-comment', extra: comment);
     if (updated == true) {
+      // ignore: use_build_context_synchronously
       context.read<CommentProvider>().fetchComments(widget.postId);
     }
   }
