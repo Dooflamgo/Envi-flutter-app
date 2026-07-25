@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:envi/core/error_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -57,10 +58,12 @@ class _EditPostScreenState extends State<EditPostScreen> {
             removedImageUrls: _removedImageUrls,
             newImages: _newImages,
           );
-      if (mounted) {
-        context.pop(true);
-      }
-    } finally {
+        if (mounted) {
+          context.pop(true);
+        }
+        } catch (e) {
+          if (mounted) showErrorSnackBar(context, e);
+        } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }

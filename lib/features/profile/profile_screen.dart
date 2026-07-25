@@ -10,6 +10,7 @@ import '../follows/follow_provider.dart';
 import '../feed/feed_screen.dart';
 import 'profile_provider.dart';
 import 'profile_feed_item.dart';
+import '../../core/error_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -88,8 +89,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (userId == null) return;
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (picked == null) return;
-    // ignore: use_build_context_synchronously
-    await context.read<ProfileProvider>().uploadAvatar(userId, File(picked.path));
+    try {
+      // ignore: use_build_context_synchronously
+      await context.read<ProfileProvider>().uploadAvatar(userId, File(picked.path));
+    } catch (e) {
+      if (mounted) showErrorSnackBar(context, e);
+    }
+  }
+
+  Future<void> _deleteAvatar(String userId) async {
+    try {
+      await context.read<ProfileProvider>().deleteAvatar(userId);
+    } catch (e) {
+      if (mounted) showErrorSnackBar(context, e);
+    }
+  }
+
+  Future<void> _updateName(String userId, String newName) async {
+    try {
+      await context.read<ProfileProvider>().updateName(userId, newName);
+      if (mounted) setState(() => _isEditingName = false);
+    } catch (e) {
+      if (mounted) showErrorSnackBar(context, e);
+    }
   }
 
   @override
@@ -203,7 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           if (_isOwnProfile && avatarUrl != null)
             TextButton(
-              onPressed: () => context.read<ProfileProvider>().deleteAvatar(myUserId!),
+              onPressed: () => _deleteAvatar(myUserId!),
               child: const Text('Remove photo', style: TextStyle(color: Colors.red)),
             ),
           const SizedBox(height: 8),
@@ -219,10 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.check),
-                          onPressed: () async {
-                            await context.read<ProfileProvider>().updateName(myUserId!, _nameController.text.trim());
-                            setState(() => _isEditingName = false);
-                          },
+                          onPressed: () => _updateName(myUserId!, _nameController.text.trim()),
                         ),
                       ],
                     )

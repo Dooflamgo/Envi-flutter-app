@@ -184,33 +184,68 @@ class PostProvider extends ChangeNotifier {
     }
   }
 
+  final Set<String> _pendingLikeToggles = {};
+  final Set<String> _pendingRepostToggles = {};
+
   Future<void> toggleLike(String postId, String userId) async {
+    if (_pendingLikeToggles.contains(postId)) return;
     final index = posts.indexWhere((p) => p.id == postId);
     if (index == -1) return;
-    final post = posts[index];
 
-    if (post.isLikedByMe) {
-      await supabase.from('likes').delete().eq('post_id', postId).eq('user_id', userId);
-      posts[index] = post.copyWith(isLikedByMe: false, likeCount: post.likeCount - 1);
-    } else {
-      await supabase.from('likes').insert({'post_id': postId, 'user_id': userId});
-      posts[index] = post.copyWith(isLikedByMe: true, likeCount: post.likeCount + 1);
-    }
+    final original = posts[index];
+    final wasLiked = original.isLikedByMe;
+
+    _pendingLikeToggles.add(postId);
+    posts[index] = original.copyWith(
+      isLikedByMe: !wasLiked,
+      likeCount: wasLiked ? original.likeCount - 1 : original.likeCount + 1,
+    );
     notifyListeners();
+
+    try {
+      if (wasLiked) {
+        await supabase.from('likes').delete().eq('post_id', postId).eq('user_id', userId);
+      } else {
+        await supabase.from('likes').insert({'post_id': postId, 'user_id': userId});
+      }
+    } catch (e) {
+      debugPrint('toggleLike failed, reverting: $e');
+      final revertIndex = posts.indexWhere((p) => p.id == postId);
+      if (revertIndex != -1) posts[revertIndex] = original;
+      notifyListeners();
+    } finally {
+      _pendingLikeToggles.remove(postId);
+    }
   }
 
   Future<void> toggleRepost(String postId, String userId) async {
+    if (_pendingRepostToggles.contains(postId)) return;
     final index = posts.indexWhere((p) => p.id == postId);
     if (index == -1) return;
-    final post = posts[index];
 
-    if (post.isRepostedByMe) {
-      await supabase.from('reposts').delete().eq('post_id', postId).eq('user_id', userId);
-      posts[index] = post.copyWith(isRepostedByMe: false, repostCount: post.repostCount - 1);
-    } else {
-      await supabase.from('reposts').insert({'post_id': postId, 'user_id': userId});
-      posts[index] = post.copyWith(isRepostedByMe: true, repostCount: post.repostCount + 1);
-    }
+    final original = posts[index];
+    final wasReposted = original.isRepostedByMe;
+
+    _pendingRepostToggles.add(postId);
+    posts[index] = original.copyWith(
+      isRepostedByMe: !wasReposted,
+      repostCount: wasReposted ? original.repostCount - 1 : original.repostCount + 1,
+    );
     notifyListeners();
+
+    try {
+      if (wasReposted) {
+        await supabase.from('reposts').delete().eq('post_id', postId).eq('user_id', userId);
+      } else {
+        await supabase.from('reposts').insert({'post_id': postId, 'user_id': userId});
+      }
+    } catch (e) {
+      debugPrint('toggleRepost failed, reverting: $e');
+      final revertIndex = posts.indexWhere((p) => p.id == postId);
+      if (revertIndex != -1) posts[revertIndex] = original;
+      notifyListeners();
+    } finally {
+      _pendingRepostToggles.remove(postId);
+    }
   }
 }

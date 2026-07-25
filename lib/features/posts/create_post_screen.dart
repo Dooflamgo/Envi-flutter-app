@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../auth/auth_provider.dart';
+import '../../core/error_helper.dart';
 import 'post_provider.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -43,6 +44,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             images: _selectedImages,
           );
       if (mounted) context.pop();
+    } catch (e) {
+      if (mounted) showErrorSnackBar(context, e);
     } finally {
       if (mounted) setState(() => _isPosting = false);
     }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../core/error_helper.dart';
 
 class CommentComposer extends StatefulWidget {
   final String? replyingToName;
@@ -37,11 +38,7 @@ class _CommentComposerState extends State<CommentComposer> {
       _controller.clear();
       setState(() => _images.clear());
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to post comment: $e')),
-        );
-      }
+      if (mounted) showErrorSnackBar(context, e);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
