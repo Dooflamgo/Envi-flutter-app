@@ -128,8 +128,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
             IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () async {
+                final shouldLogout = await showDialog<bool>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('Log out?'),
+                    content: const Text('Are you sure you want to log out?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        child: const Text('Log out'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (shouldLogout != true) return;
+
                 await context.read<AuthProvider>().logout();
-                if (context.mounted) context.go('/login');
+                if (mounted && context.mounted) context.go('/login');
               },
             ),
         ],

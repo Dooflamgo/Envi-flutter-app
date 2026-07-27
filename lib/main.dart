@@ -5,7 +5,7 @@ import 'package:envi/features/notifications/notification_provider.dart';
 import 'package:envi/features/posts/post_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'core/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'core/supabase_client.dart';
@@ -16,8 +16,7 @@ import 'features/profile/profile_provider.dart';
 void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    usePathUrlStrategy(); 
-
+    configureUrlStrategy();
 
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
