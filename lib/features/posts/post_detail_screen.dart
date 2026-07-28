@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../auth/auth_provider.dart';
+import '../../core/nav_helpers.dart';
 import 'post_provider.dart';
 import 'post_model.dart';
 import '../comments/comment_provider.dart';
@@ -83,6 +84,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/feed'),
+        ),
         title: const Text('Post'),
         actions: [
           if (isOwner) ...[
@@ -106,7 +111,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     padding: const EdgeInsets.all(16),
                     children: [
                       GestureDetector(
-                        onTap: () => context.push('/user/${_post!.userId}'),
+                        onTap: () => goToUserProfile(context, _post!.userId),
                         child: Row(
                           children: [
                             CircleAvatar(

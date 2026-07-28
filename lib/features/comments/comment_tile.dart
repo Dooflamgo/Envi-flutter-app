@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../../core/nav_helpers.dart';
 import 'comment_model.dart';
 
 class CommentTile extends StatelessWidget {
@@ -28,12 +29,15 @@ class CommentTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: isReply ? 14 : 16,
-            backgroundImage: comment.authorAvatarUrl != null
-                ? CachedNetworkImageProvider(comment.authorAvatarUrl!)
-                : null,
-            child: comment.authorAvatarUrl == null ? const Icon(Icons.person, size: 14) : null,
+          GestureDetector(
+            onTap: () => goToUserProfile(context, comment.userId),
+            child: CircleAvatar(
+              radius: isReply ? 14 : 16,
+              backgroundImage: comment.authorAvatarUrl != null
+                  ? CachedNetworkImageProvider(comment.authorAvatarUrl!)
+                  : null,
+              child: comment.authorAvatarUrl == null ? const Icon(Icons.person, size: 14) : null,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -49,7 +53,10 @@ class CommentTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(comment.authorName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      GestureDetector(
+                        onTap: () => goToUserProfile(context, comment.userId),
+                        child: Text(comment.authorName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      ),
                       if (comment.content.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(comment.content),

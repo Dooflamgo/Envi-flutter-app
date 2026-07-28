@@ -1,1 +1,1 @@
-export 'url_strategy_io.dart' if (dart.library.js_interop) 'url_strategy_web.dart';
+export 'url_strategy_io.dart' if (dart.library.html) 'url_strategy_web.dart';

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../../core/nav_helpers.dart';
 import '../auth/auth_provider.dart';
 import '../posts/post_model.dart';
 
@@ -88,7 +89,7 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => context.push('/post/${post.id}'),
+      onTap: () => pushIfNotCurrent(context, '/post/${post.id}'),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         padding: const EdgeInsets.all(12),
@@ -100,7 +101,7 @@ class PostCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onTap: () => context.push('/user/${post.userId}'),
+              onTap: () => goToUserProfile(context, post.userId),
               child: Row(
                 children: [
                   CircleAvatar(

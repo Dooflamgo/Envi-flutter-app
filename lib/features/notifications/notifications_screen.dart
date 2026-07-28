@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../auth/auth_provider.dart';
+import '../../core/nav_helpers.dart';
 import 'notification_provider.dart';
 import 'notification_model.dart';
 
@@ -69,9 +69,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       onTap: () {
                         context.read<NotificationProvider>().markAsRead(n.id);
                         if (n.type == 'follow') {
-                          context.push('/user/${n.actorId}');
+                          goToUserProfile(context, n.actorId);
                         } else if (n.postId != null) {
-                          context.push('/post/${n.postId}');
+                          pushIfNotCurrent(context, '/post/${n.postId}');
                         }
                       },
                     );
@@ -90,8 +90,7 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      // ignore: deprecated_member_use
-      color: notification.isRead ? Colors.transparent : Colors.indigo.withOpacity(0.05),
+      color: notification.isRead ? Colors.transparent : Colors.indigo.withValues(alpha: 0.05),
       child: InkWell(
         onTap: onTap,
         child: Padding(

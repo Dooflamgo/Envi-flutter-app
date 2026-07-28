@@ -122,6 +122,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: _isOwnProfile
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.go('/feed'),
+              ),
         title: Text(_isOwnProfile ? 'Profile' : (_otherName ?? '')),
         actions: [
           if (_isOwnProfile)
@@ -148,6 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 if (shouldLogout != true) return;
 
+                // ignore: use_build_context_synchronously
                 await context.read<AuthProvider>().logout();
                 if (mounted && context.mounted) context.go('/login');
               },
