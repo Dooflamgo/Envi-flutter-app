@@ -133,6 +133,7 @@ class PostCard extends StatelessWidget {
               const SizedBox(height: 10),
               _ImagePreviewGrid(imageUrls: post.imageUrls),
             ],
+            const SizedBox(height: 10),
             Row(
               children: [
                 _ReactionButton(

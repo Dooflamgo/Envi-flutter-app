@@ -120,7 +120,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Scaffold(body: Center(child: Text('No profile to show')));
     }
 
-    return Scaffold(
+    return PopScope(
+      canPop: _isOwnProfile,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.go('/feed');
+      },
+      child: Scaffold(
       appBar: AppBar(
         leading: _isOwnProfile
             ? null
@@ -187,6 +193,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 

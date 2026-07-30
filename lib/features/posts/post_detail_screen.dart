@@ -82,7 +82,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final isOwner = _post != null && _post!.userId == userId;
     final commentProvider = context.watch<CommentProvider>();
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.go('/feed');
+      },
+      child: Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -210,6 +216,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   ),
               ],
             ),
+    ),
     );
   }
 
