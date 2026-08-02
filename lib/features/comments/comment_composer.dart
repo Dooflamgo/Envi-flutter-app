@@ -1,12 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/error_helper.dart';
+import '../../core/xfile_preview.dart';
 
 class CommentComposer extends StatefulWidget {
   final String? replyingToName;
   final VoidCallback? onCancelReply;
-  final Future<void> Function(String content, List<File> images) onSubmit;
+  final Future<void> Function(String content, List<XFile> images) onSubmit;
 
   const CommentComposer({
     super.key,
@@ -21,13 +21,13 @@ class CommentComposer extends StatefulWidget {
 
 class _CommentComposerState extends State<CommentComposer> {
   final _controller = TextEditingController();
-  final List<File> _images = [];
+  final List<XFile> _images = [];
   bool _isSubmitting = false;
 
   Future<void> _pickImages() async {
     final picked = await ImagePicker().pickMultiImage(imageQuality: 80);
     if (picked.isEmpty) return;
-    setState(() => _images.addAll(picked.map((x) => File(x.path))));
+    setState(() => _images.addAll(picked));
   }
 
   Future<void> _submit() async {
@@ -76,7 +76,7 @@ class _CommentComposerState extends State<CommentComposer> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.file(_images[index], width: 60, height: 60, fit: BoxFit.cover),
+                      child: XFilePreview(file: _images[index], width: 60, height: 60),
                     ),
                     Positioned(
                       top: 0,

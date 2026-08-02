@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -91,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (picked == null) return;
     try {
       // ignore: use_build_context_synchronously
-      await context.read<ProfileProvider>().uploadAvatar(userId, File(picked.path));
+      await context.read<ProfileProvider>().uploadAvatar(userId, picked);
     } catch (e) {
       if (mounted) showErrorSnackBar(context, e);
     }

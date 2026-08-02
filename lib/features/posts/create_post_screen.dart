@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../auth/auth_provider.dart';
 import '../../core/error_helper.dart';
+import '../../core/xfile_preview.dart';
 import 'post_provider.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -16,14 +16,14 @@ class CreatePostScreen extends StatefulWidget {
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
   final _contentController = TextEditingController();
-  final List<File> _selectedImages = [];
+  final List<XFile> _selectedImages = [];
   bool _isPosting = false;
 
   Future<void> _pickImages() async {
     final picked = await ImagePicker().pickMultiImage(imageQuality: 80);
     if (picked.isEmpty) return;
     setState(() {
-      _selectedImages.addAll(picked.map((x) => File(x.path)));
+      _selectedImages.addAll(picked);
     });
   }
 
@@ -91,7 +91,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.file(_selectedImages[index], width: 90, height: 90, fit: BoxFit.cover),
+                          child: XFilePreview(file: _selectedImages[index], width: 90, height: 90),
                         ),
                         Positioned(
                           top: 2,

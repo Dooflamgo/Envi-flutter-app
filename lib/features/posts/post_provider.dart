@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/supabase_client.dart';
 import 'post_model.dart';
@@ -68,7 +69,7 @@ class PostProvider extends ChangeNotifier {
   Future<void> createPost({
     required String userId,
     required String content,
-    required List<File> images,
+    required List<XFile> images,
   }) async {
     final postId = const Uuid().v4();
     final imageUrls = await _uploadImages(userId, postId, images);
@@ -89,7 +90,7 @@ class PostProvider extends ChangeNotifier {
     required String content,
     required List<String> existingImageUrls,
     required List<String> removedImageUrls,
-    required List<File> newImages,
+    required List<XFile> newImages,
   }) async {
     if (removedImageUrls.isNotEmpty) {
       await _deleteImagesByUrl(removedImageUrls);
@@ -134,13 +135,18 @@ class PostProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<String>> _uploadImages(String userId, String postId, List<File> images) async {
+  Future<List<String>> _uploadImages(String userId, String postId, List<XFile> images) async {
     final urls = <String>[];
     for (final image in images) {
-      final ext = image.path.split('.').last;
+      final ext = image.name.contains('.') ? image.name.split('.').last : 'jpg';
       final fileName = '${const Uuid().v4()}.$ext';
       final path = '$userId/$postId/$fileName';
-      await supabase.storage.from('post-images').upload(path, image);
+      final bytes = await image.readAsBytes();
+      await supabase.storage.from('post-images').uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(contentType: image.mimeType ?? 'image/jpeg'),
+          );
       urls.add(supabase.storage.from('post-images').getPublicUrl(path));
     }
     return urls;

@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/supabase_client.dart';
 import 'comment_model.dart';
@@ -33,7 +34,7 @@ class CommentProvider extends ChangeNotifier {
     required String userId,
     required String content,
     String? parentCommentId,
-    required List<File> images,
+    required List<XFile> images,
   }) async {
     final commentId = const Uuid().v4();
     final imageUrls = await _uploadImages(userId, commentId, images);
@@ -57,7 +58,7 @@ class CommentProvider extends ChangeNotifier {
     required String content,
     required List<String> existingImageUrls,
     required List<String> removedImageUrls,
-    required List<File> newImages,
+    required List<XFile> newImages,
   }) async {
     if (removedImageUrls.isNotEmpty) {
       await _deleteImagesByUrl(removedImageUrls);
@@ -88,13 +89,18 @@ class CommentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<String>> _uploadImages(String userId, String commentId, List<File> images) async {
+  Future<List<String>> _uploadImages(String userId, String commentId, List<XFile> images) async {
     final urls = <String>[];
     for (final image in images) {
-      final ext = image.path.split('.').last;
+      final ext = image.name.contains('.') ? image.name.split('.').last : 'jpg';
       final fileName = '${const Uuid().v4()}.$ext';
       final path = '$userId/$commentId/$fileName';
-      await supabase.storage.from('comment-images').upload(path, image);
+      final bytes = await image.readAsBytes();
+      await supabase.storage.from('comment-images').uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(contentType: image.mimeType ?? 'image/jpeg'),
+          );
       urls.add(supabase.storage.from('comment-images').getPublicUrl(path));
     }
     return urls;

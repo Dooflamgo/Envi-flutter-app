@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/supabase_client.dart';
 import 'profile_model.dart';
@@ -28,16 +29,21 @@ class ProfileProvider extends ChangeNotifier {
     await fetchProfile(userId);
   }
 
-  Future<void> uploadAvatar(String userId, File file) async {
+  Future<void> uploadAvatar(String userId, XFile file) async {
     if (profile?.avatarUrl != null) {
       await _deleteAvatarFile(userId, profile!.avatarUrl!);
     }
 
-    final ext = file.path.split('.').last;
+    final ext = file.name.contains('.') ? file.name.split('.').last : 'jpg';
     final fileName = '${const Uuid().v4()}.$ext';
     final path = '$userId/$fileName';
+    final bytes = await file.readAsBytes();
 
-    await supabase.storage.from('avatars').upload(path, file);
+    await supabase.storage.from('avatars').uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: file.mimeType ?? 'image/jpeg'),
+        );
     final publicUrl = supabase.storage.from('avatars').getPublicUrl(path);
 
     await supabase

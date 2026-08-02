@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:envi/core/error_helper.dart';
+import 'package:envi/core/xfile_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +20,7 @@ class _EditCommentScreenState extends State<EditCommentScreen> {
   late final TextEditingController _contentController;
   late List<String> _existingImageUrls;
   final List<String> _removedImageUrls = [];
-  final List<File> _newImages = [];
+  final List<XFile> _newImages = [];
   bool _isSaving = false;
 
   @override
@@ -33,7 +33,7 @@ class _EditCommentScreenState extends State<EditCommentScreen> {
   Future<void> _pickImages() async {
     final picked = await ImagePicker().pickMultiImage(imageQuality: 80);
     if (picked.isEmpty) return;
-    setState(() => _newImages.addAll(picked.map((x) => File(x.path))));
+    setState(() => _newImages.addAll(picked));
   }
 
   Future<void> _save() async {
@@ -94,7 +94,7 @@ class _EditCommentScreenState extends State<EditCommentScreen> {
                       }),
                     )),
                 ..._newImages.asMap().entries.map((entry) => _ImageTile(
-                      child: Image.file(entry.value, width: 80, height: 80, fit: BoxFit.cover),
+                      child: XFilePreview(file: entry.value, width: 80, height: 80),
                       onRemove: () => setState(() => _newImages.removeAt(entry.key)),
                     )),
                 GestureDetector(

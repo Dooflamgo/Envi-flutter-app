@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:envi/core/error_helper.dart';
+import 'package:envi/core/xfile_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +20,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
   late final TextEditingController _contentController;
   late List<String> _existingImageUrls;
   final List<String> _removedImageUrls = [];
-  final List<File> _newImages = [];
+  final List<XFile> _newImages = [];
   bool _isSaving = false;
 
   @override
@@ -33,7 +33,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
   Future<void> _pickImages() async {
     final picked = await ImagePicker().pickMultiImage(imageQuality: 80);
     if (picked.isEmpty) return;
-    setState(() => _newImages.addAll(picked.map((x) => File(x.path))));
+    setState(() => _newImages.addAll(picked));
   }
 
   void _removeExisting(String url) {
@@ -101,7 +101,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
                       onRemove: () => _removeExisting(url),
                     )),
                 ..._newImages.asMap().entries.map((entry) => _ImageTile(
-                      child: Image.file(entry.value, width: 90, height: 90, fit: BoxFit.cover),
+                      child: XFilePreview(file: entry.value, width: 90, height: 90),
                       onRemove: () => _removeNew(entry.key),
                     )),
                 GestureDetector(
